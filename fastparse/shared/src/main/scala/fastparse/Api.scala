@@ -6,6 +6,7 @@ import language.experimental.macros
 import fastparse.parsers.{Intrinsics, Terminals}
 import fastparse.Utils.{HexUtils, IsReachable}
 import fastparse.core.{Mutable, ParseCtx}
+import fastparse.parsers.Terminals.AnyElems
 
 /**
  * This is basically a trait which contains
@@ -79,6 +80,7 @@ object noApi extends StringApi
 class ByteApi() extends Api[Byte, Array[Byte]]() {
 
   val AnyByte = AnyElem
+  def AnyBytes(count: Int) = AnyElems[Byte, Array[Byte]](count)
 
   val BytePred = ElemPred
   def ByteIn(seqs: Seq[Byte]*) = ElemIn(seqs: _*)

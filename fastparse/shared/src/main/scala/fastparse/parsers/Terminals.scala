@@ -48,6 +48,17 @@ object Terminals {
     }
     override val toString = "AnyElem"
   }
+  /**
+   * Consumes up to `count` elements, if they are available
+   */
+  case class AnyElems[ElemType, Repr](count: Int) extends Parser[Unit, ElemType, Repr]{
+    def parseRec(cfg: ParseCtx[ElemType, Repr], index: Int) = {
+      val input = cfg.input
+      if (!input.isReachable(index + count - 1)) fail(cfg.failure, index)
+      else success(cfg.success, input(index), index + count, Set.empty, false)
+    }
+    override val toString = "AnyElems"
+  }
 
   /**
    * Succeeds if at the start of the input, consuming no input

@@ -381,7 +381,7 @@ object ClassParse {
   }
 
   val constantUtf8Info =
-    P( BS(1) ~/ UInt16.flatMap(l => AnyByte.rep(exactly=l).!) ).map(Utf8Info)
+    P( BS(1) ~/ UInt16.flatMap(l => AnyBytes(l).!) ).map(Utf8Info)
 
   val constantMethodHandleInfo = {
     val reference_kind = AnyByte.!

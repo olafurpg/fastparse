@@ -84,7 +84,7 @@ object ClassAttributes {
 
     val max_stack = UInt16
     val max_locals = UInt16
-    val code = Int32.flatMap(l => AnyByte.rep(exactly=l).!).map(parseCode)
+    val code = Int32.flatMap(l => AnyBytes(l).!).map(parseCode)
     val exception_table = repeatWithSize(UInt16, exceptionHandler.~/)
     val attributes = repeatWithSize(UInt16, attributeInfo.~/)
 

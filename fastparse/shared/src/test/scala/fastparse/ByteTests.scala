@@ -228,7 +228,7 @@ object ByteTests extends TestSuite {
         import fastparse.byte._
         object Foo{
 
-          val int = P( BS(0) ~/ AnyByte.rep(exactly=4).! ).map(bytesToInt)
+          val int = P( BS(0) ~/ AnyBytes(4).! ).map(bytesToInt)
           val longInt = P( BS(-1) ~/ AnyByte.rep(exactly=8).! ).map(bytesToLongInt)
           val ints = P( (int | longInt).rep(1) )
         }
@@ -277,7 +277,7 @@ object ByteTests extends TestSuite {
         val udpParser = P(
           for{
             (sourcePort, destPort, length, checkSum) <- udpHeader
-            data <- AnyByte.rep(exactly=length - 8).!
+            data <- AnyBytes(length - 8).!
           } yield UdpPacket(sourcePort, destPort, checkSum, data)
         )
 
