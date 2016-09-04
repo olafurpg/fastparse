@@ -95,64 +95,88 @@ object ByteUtils{
 
     }
   }
+
   trait EndianByteParsers {
+    object A{
+      val Int8: Parser[Byte] = new GenericIntegerParser(1, _(_))
+    }
+    object B{
+      val Int16: Parser[Short] = new GenericIntegerParser(2, inputToShort)
+    }
+    object C{
+      val Int32: Parser[Int] = new GenericIntegerParser(4, inputToInt)
+    }
+    object D{
+      val Int64: Parser[Long] = new GenericIntegerParser(8, inputToLong)
+    }
+    object E{
+      val UInt8: Parser[Short] = new GenericIntegerParser(1, (input, n) =>
+        (input(n) & 0xff).toShort
+      )
+    }
+    object F{
+      val UInt16: Parser[Int] = new GenericIntegerParser(2, (input, n) =>
+        inputToShort(input, n) & 0xffff
+      )
+    }
+    object G{
+      val UInt32: Parser[Long] = new GenericIntegerParser(4, (input, n) =>
+        inputToInt(input, n) & 0xffffffffL
+      )
+    }
+    object H{
+      val Float32: Parser[Float] = new GenericIntegerParser(4, (input, n) =>
+        java.lang.Float.intBitsToFloat(inputToInt(input, n))
+      )
+    }
+    object I{
+      val Float64: Parser[Double] = new GenericIntegerParser(8, (input, n) =>
+        java.lang.Double.longBitsToDouble(inputToLong(input, n))
+      )
+    }
     protected[this] def inputToShort(input: IsReachable[Byte], n: Int): Short
     protected[this] def inputToInt(input: IsReachable[Byte], n: Int): Int
     protected[this] def inputToLong(input: IsReachable[Byte], n: Int): Long
     /**
       * Parses an 8-bit signed Byte
       */
-    val Int8: Parser[Byte] = new GenericIntegerParser(1, _(_))
+    val Int8 = A.Int8
     /**
       * Parses an 16-bit signed Short
       */
-    val Int16: Parser[Short] = new GenericIntegerParser(2, inputToShort)
+    val Int16 = B.Int16
     /**
       * Parses an 32-bit signed Short
       */
-    val Int32: Parser[Int] = new GenericIntegerParser(4, inputToInt)
+    val Int32 = C.Int32
     /**
       * Parses an 64-bit signed Short
       */
-    val Int64: Parser[Long] = new GenericIntegerParser(8, inputToLong)
+    val Int64 = D.Int64
 
     /**
       * Parses an 8-bit un-signed Byte, stuffed into a Short
       */
-    val UInt8: Parser[Short] = new GenericIntegerParser(1, (input, n) =>
-      (input(n) & 0xff).toShort
-    )
+    val UInt8 = E.UInt8
     /**
       * Parses an 16-bit signed Short, stuffed into an Int
       */
-    val UInt16: Parser[Int] = new GenericIntegerParser(2, (input, n) =>
-      inputToShort(input, n) & 0xffff
-    )
+    val UInt16 = F.UInt16
 
-    def inputToULong(input: IsReachable[Byte], n: Int) = {
-      inputToInt(input, n) & 0xffffffffL
-    }
     /**
       * Parses an 32-bit signed Int, stuffed into a Long
       */
-    val UInt32: Parser[Long] = new GenericIntegerParser(4, inputToULong)
+    val UInt32 = G.UInt32
 
 
-    private[this] def intToFloat(i: Int) = java.lang.Float.intBitsToFloat(i)
     /**
       * Parses an 32-bit signed Float
       */
-    val Float32: Parser[Float] = new GenericIntegerParser(4, (input, n) =>
-      intToFloat(inputToInt(input, n))
-    )
-
-    private[this] def longToDouble(l: Long) = java.lang.Double.longBitsToDouble(l)
+    val Float32 = H.Float32
     /**
       * Parses an 32-bit signed Double
       */
-    val Float64: Parser[Double] = new GenericIntegerParser(8, (input, n) =>
-      longToDouble(inputToLong(input, n))
-    )
+    val Float64 = I.Float64
   }
   object EndianByteParsers{
     /**
