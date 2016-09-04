@@ -118,9 +118,9 @@ class ByteApi() extends Api[Byte, Array[Byte]]() {
   }
 
 
-  type GenericIntegerParser[T] = fastparse.GenericIntegerParser[T]
-  val LE = fastparse.EndianByteParsers.LE
-  val BE = fastparse.EndianByteParsers.BE
+  type GenericIntegerParser[T] = ByteUtils.GenericIntegerParser[T]
+  val LE = ByteUtils.EndianByteParsers.LE
+  val BE = ByteUtils.EndianByteParsers.BE
   /**
     * Parses a two-byte word
     */
