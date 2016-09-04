@@ -97,13 +97,14 @@ object ByteUtils{
   }
 
   trait EndianByteParsers {
+    protected[this] def inputToByte(input: IsReachable[Byte], n: Int): Byte = input(n)
     protected[this] def inputToShort(input: IsReachable[Byte], n: Int): Short
     protected[this] def inputToInt(input: IsReachable[Byte], n: Int): Int
     protected[this] def inputToLong(input: IsReachable[Byte], n: Int): Long
     /**
       * Parses an 8-bit signed Byte
       */
-    val Int8: Parser[Byte] = new GenericIntegerParser(1, _(_))
+    val Int8: Parser[Byte] = new GenericIntegerParser(1, inputToByte)
     /**
       * Parses an 16-bit signed Short
       */
@@ -122,41 +123,39 @@ object ByteUtils{
     // seg-faults in travis-CI and I have no idea how else to fix it
     private[this] def toShort(i: Int) = i.toShort
     private[this] def unsignifyByte(i: Byte) = i & 0xff
+    private[this] def unsignifyShort(i: Short) = i & 0xffff
+    private[this] def unsignifyInt(i: Int) = i & 0xffffffffL
+    private[this] def uInt8(input: IsReachable[Byte], n: Int) = toShort(unsignifyByte(input(n)))
+    private[this] def uInt16(input: IsReachable[Byte], n: Int) = unsignifyShort(inputToShort(input, n))
+    private[this] def uInt32(input: IsReachable[Byte], n: Int) = unsignifyInt(inputToInt(input, n))
+    private[this] def float32(input: IsReachable[Byte], n: Int) = java.lang.Float.intBitsToFloat(inputToInt(input, n))
+    private[this] def float64(input: IsReachable[Byte], n: Int) = java.lang.Double.longBitsToDouble(inputToLong(input, n))
+
     /**
       * Parses an 8-bit un-signed Byte, stuffed into a Short
       */
-    val UInt8: Parser[Short] = new GenericIntegerParser(1, (input, n) =>
-      toShort(unsignifyByte(input(n)))
-    )
+    val UInt8: Parser[Short] = new GenericIntegerParser(1, uInt8)
 
     /**
       * Parses an 16-bit signed Short, stuffed into an Int
       */
-    val UInt16: Parser[Int] = new GenericIntegerParser(2, (input, n) =>
-      inputToShort(input, n) & 0xffff
-    )
+    val UInt16: Parser[Int] = new GenericIntegerParser(2, uInt16)
 
     /**
       * Parses an 32-bit signed Int, stuffed into a Long
       */
-    val UInt32: Parser[Long] = new GenericIntegerParser(4, (input, n) =>
-      inputToInt(input, n) & 0xffffffffL
-    )
+    val UInt32: Parser[Long] = new GenericIntegerParser(4, uInt32)
 
 
     /**
       * Parses an 32-bit signed Float
       */
-    val Float32: Parser[Float] = new GenericIntegerParser(4, (input, n) =>
-      java.lang.Float.intBitsToFloat(inputToInt(input, n))
-    )
+    val Float32: Parser[Float] = new GenericIntegerParser(4, float32)
 
     /**
       * Parses an 32-bit signed Double
       */
-    val Float64: Parser[Double] = new GenericIntegerParser(8, (input, n) =>
-      java.lang.Double.longBitsToDouble(inputToLong(input, n))
-    )
+    val Float64: Parser[Double] = new GenericIntegerParser(8, float64)
   }
   object EndianByteParsers{
     /**
