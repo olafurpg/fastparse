@@ -280,11 +280,11 @@ object ByteTests extends TestSuite {
           } yield UdpPacket(sourcePort, destPort, checkSum, data)
         )
 
-        val bytes = hexBytes(
-          "04 89 00 35 00 2C AB B4 00 01 01 00 00 01 00 00 " +
-          "00 00 00 00 04 70 6F 70 64 02 69 78 06 6E 65 74 " +
-          "63 6F 6D 03 63 6F 6D 00 00 01 00 01"
-        )
+        val bytes = hexBytes("""
+          04 89 00 35 00 2C AB B4 00 01 01 00 00 01 00 00
+          00 00 00 00 04 70 6F 70 64 02 69 78 06 6E 65 74
+          63 6F 6D 03 63 6F 6D 00 00 01 00 01
+        """)
 
         val Parsed.Success(packet, _) = udpParser.parse(bytes)
         assert(
@@ -292,11 +292,11 @@ object ByteTests extends TestSuite {
           packet.destPort == 53,
           packet.checkSum == 43956,
           packet.data.length == 36,
-          packet.data.toSeq == hexBytes(
-            "00 01 01 00 00 01 00 00 00 00 00 00 04 70 6F 70 " +
-            "64 02 69 78 06 6E 65 74 63 6F 6D 03 63 6F 6D 00 " +
-            "00 01 00 01"
-          ).toSeq
+          packet.data.toSeq == hexBytes("""
+            00 01 01 00 00 01 00 00 00 00 00 00 04 70 6F 70
+            64 02 69 78 06 6E 65 74 63 6F 6D 03 63 6F 6D 00
+            00 01 00 01
+          """).toSeq
         )
       }
     }

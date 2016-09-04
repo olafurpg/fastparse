@@ -432,7 +432,7 @@ object ClassParse {
     val access_flags = Word16.!
     val name_index = UInt16
     val descriptor_index = UInt16
-    val attributes = repeatWithSize(attributeInfo.~/)
+    val attributes = repeatWithSize(UInt16, attributeInfo.~/)
 
     P( access_flags ~ name_index ~ descriptor_index ~ attributes ).map(FieldInfo.tupled)
   }
@@ -441,7 +441,7 @@ object ClassParse {
     val access_flags = Word16.!
     val name_index = UInt16
     val descriptor_index = UInt16
-    val attributes = repeatWithSize(attributeInfo.~/)
+    val attributes = repeatWithSize(UInt16, attributeInfo.~/)
 
     P(access_flags ~ name_index ~ descriptor_index ~ attributes).map(MethodInfo.tupled)
   }
@@ -453,10 +453,10 @@ object ClassParse {
     val access_flags = Word16.!
     val this_class = UInt16
     val super_class = UInt16
-    val interfaces = repeatWithSize(UInt16.~/)
-    val fields = repeatWithSize(fieldInfo.~/)
-    val methods = repeatWithSize(methodInfo.~/)
-    val attributes = repeatWithSize(attributeInfo.~/)
+    val interfaces = repeatWithSize(UInt16, UInt16.~/)
+    val fields = repeatWithSize(UInt16, fieldInfo.~/)
+    val methods = repeatWithSize(UInt16, methodInfo.~/)
+    val attributes = repeatWithSize(UInt16, attributeInfo.~/)
 
     P(
       BS(0xCA, 0xFE, 0xBA, 0xBE) ~/

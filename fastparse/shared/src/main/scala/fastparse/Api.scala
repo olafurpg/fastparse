@@ -4,7 +4,8 @@ import java.nio.ByteOrder._
 
 import language.experimental.macros
 import fastparse.parsers.{Intrinsics, Terminals}
-import fastparse.Utils.HexUtils
+import fastparse.Utils.{HexUtils, IsReachable}
+import fastparse.core.{Mutable, ParseCtx}
 
 /**
  * This is basically a trait which contains
@@ -102,8 +103,9 @@ class ByteApi() extends Api[Byte, Array[Byte]]() {
     }
 
     val hexDigit = all.P(CharIn('0' to '9', 'a' to 'f', 'A' to 'F'))
-    val byte = all.P("0x".? ~ hexDigit.rep(exactly = 2).!).map(s => charsToByte(s.toLowerCase))
-    val byteSep = all.P(" ".rep)
+    val byte = all.P(hexDigit.rep(exactly = 2).!).map(s => charsToByte(s.toLowerCase))
+    val whitespace = " \n\r".toSet
+    val byteSep = all.P(CharsWhile(whitespace, min = 0))
     val bytes = all.P(byteSep ~ byte.rep(sep = byteSep)).map(_.toArray)
   }
 
@@ -121,52 +123,123 @@ object byte extends ByteApi {
                               (implicit c: T => core.Parser[V, Byte, Array[Byte]]): ParserApi[V, Byte, Array[Byte]] =
     new ParserApiImpl[V, Byte, Array[Byte]](p)
 
+  class GenericIntegerParser[T](n: Int, creator: (IsReachable[Byte], Int) => T)
+                                  (implicit name: sourcecode.Name) extends Parser[T]{
+    
+    override def toString = name.value
+    
+    def parseRec(cfg: ParseCtx[Byte, Array[Byte]], index: Int) = {
+      if (!cfg.input.isReachable(n + index)) fail(cfg.failure, index)
+      else success(cfg.success, creator(cfg.input, index), index + n, Set.empty, false)
+
+    }
+  }
   /**
     * Parses a two-byte word
     */
-  val Word16 = P( AnyByte.rep(exactly=2) )
+  val Word16: P[Unit] = new GenericIntegerParser(2, (input, n) => ())
   /**
     * Parses a four-byte word
     */
-  val Word32 = P( AnyByte.rep(exactly=4) )
+  val Word32: P[Unit] = new GenericIntegerParser(4, (input, n) => ())
   /**
     * Parses an eight-byte word
     */
-  val Word64 = P( AnyByte.rep(exactly=8) )
+  val Word64: P[Unit] = new GenericIntegerParser(8, (input, n) => ())
 
-  trait ByteFormat {
-    def wrapByteBuffer(byteSeq: ByteSeq): ByteBuffer
+  /**
+    * Parses the `sizeParser` to get a number `n`, and then parses `p` exactly
+    * that many times, and returns the results as a `Seq`
+    */
+  def repeatWithSize[Num: Numeric, T](sizeParser: Parser[Num], p: Parser[T]): Parser[Seq[T]] =
+    P( sizeParser.flatMap(l => p.rep(exactly = implicitly[Numeric[Num]].toInt(l))) )
 
+  trait EndianByteParsers {
+    /**
+      * Parses an 8-bit signed Byte
+      */
+    val Int8: P[Byte] = new GenericIntegerParser(1, (input, n) => input(n))
+    /**
+      * Parses an 16-bit signed Short
+      */
+    val Int16: P[Short]
+    /**
+      * Parses an 32-bit signed Int
+      */
+    val Int32: P[Int]
+    /**
+      * Parses an 64-bit signed Long
+      */
+    val Int64: P[Long]
 
-    val Int8: P[Byte] =  P(AnyByte.!).map(_(0))
-    val Int16: P[Short] = P(Word16.!).map(wrapByteBuffer(_).getShort)
-    val Int32: P[Int] = P(Word32.!).map(wrapByteBuffer(_).getInt)
-    val Int64: P[Long] = P(Word64.!).map(wrapByteBuffer(_).getLong)
+    /**
+      * Parses an 8-bit un-signed Byte, stuffed into a Short
+      */
+    val UInt8: P[Short] = new GenericIntegerParser(1, (input, n) => (input(n) & 0xff).toShort)
+    /**
+      * Parses an 16-bit signed Short, stuffed into an Int
+      */
+    val UInt16: P[Int]
+    /**
+      * Parses an 32-bit signed Int, stuffed into a Long
+      */
+    val UInt32: P[Long] 
 
-    val UInt8: P[Short] = P( Int8.map(a => (a & 0xff).toShort) )
-    val UInt16: P[Int] = P( Int16.map(_ & 0xffff) )
-    val UInt32: P[Long] = P( Int32.map(_ & 0x00000000ffffffffL ) )
-
-    // TODO Dword should be unsigned, but the only option is to change it to Long, what seems quite bad
-
-    def repeatWithSize[T](p: Parser[T], sizeParser: Parser[Int] = UInt16): Parser[Seq[T]] =
-      P( sizeParser.flatMap(l => p.rep(exactly = l)) )
   }
   /**
     * Parsers for parsing 16, 32 and 64 bit integers in little-endian format
     */
-  object LE extends ByteFormat {
-    // Little Endian format
-    def wrapByteBuffer(byteSeq: ByteSeq): ByteBuffer = ByteBuffer.wrap(byteSeq).order(LITTLE_ENDIAN)
+  object LE extends EndianByteParsers {
+    
+    val Int16: P[Short] = new GenericIntegerParser(2, (input, n) =>
+      (((input(n+1) & 0xff) << 8) | (input(n) & 0xff)).toShort
+    )
+
+    val Int32: P[Int] = new GenericIntegerParser(4, (input, n) =>
+      ((input(n+3) & 0xff) << 24) | ((input(n+2) & 0xff) << 16) |
+      ((input(n+1) & 0xff) << 8) | (input(n) & 0xff)
+    )
+
+    val Int64: P[Long] = new GenericIntegerParser(8, (input, n) =>
+      ((input(n+7) & 0xffL) << 54) | ((input(n+6) & 0xffL) << 48) |
+      ((input(n+5) & 0xffL) << 40) | ((input(n+4) & 0xffL) << 32 ) |
+      ((input(n+3) & 0xffL) << 24) | ((input(n+2) & 0xffL) << 16) |
+      ((input(n+1) & 0xffL) << 8) | (input(n) & 0xffL)
+    )
+
+    val UInt16: P[Int] = new GenericIntegerParser(2, (input, n) =>
+      ((input(n+1) & 0xff) << 8) | (input(n) & 0xff)
+    )
+    val UInt32: P[Long] = new GenericIntegerParser(4, (input, n) =>
+      ((input(n+3) & 0xffL) << 24) | ((input(n+2) & 0xffL) << 16) |
+      ((input(n+1) & 0xffL) << 8) | (input(n) & 0xffL)
+    )
   }
   /**
     * Parsers for parsing 16, 32 and 64 bit integers in big-endian format
     */
-  object BE extends ByteFormat {
-    // Big Endian format
-    def wrapByteBuffer(byteSeq: ByteSeq): ByteBuffer = ByteBuffer.wrap(byteSeq).order(BIG_ENDIAN)
+  object BE extends EndianByteParsers {
+    
+    val Int16: P[Short] = new GenericIntegerParser(2, (input, n) =>
+      (((input(n) & 0xff) << 8) | (input(n+1) & 0xff)).toShort
+    )
+    val Int32: P[Int] = new GenericIntegerParser(4, (input, n) =>
+      ((input(n) & 0xff) << 24) | ((input(n+1) & 0xff) << 16) |
+      ((input(n+2) & 0xff) << 8) | (input(n+3) & 0xff)
+    )
+    val Int64: P[Long] = new GenericIntegerParser(8, (input, n) =>
+      ((input(n) & 0xffL) << 54) | ((input(n+1) & 0xffL) << 48) |
+      ((input(n+2) & 0xffL) << 40) | ((input(n+3) & 0xffL) << 32 ) |
+      ((input(n+4) & 0xffL) << 24) | ((input(n+5) & 0xffL) << 16) |
+      ((input(n+6) & 0xffL) << 8) | (input(n+7) & 0xffL)
+    )
+    val UInt16: P[Int] = new GenericIntegerParser(2, (input, n) =>
+      ((input(n) & 0xff) << 8) | (input(n+1) & 0xff)
+    )
+    val UInt32: P[Long] = new GenericIntegerParser(4, (input, n) =>
+      ((input(n) & 0xffL) << 24) | ((input(n+1) & 0xffL) << 16) |
+      ((input(n+2) & 0xffL) << 8) | (input(n+3) & 0xffL)
+    )
   }
-
-
 }
 object byteNoApi extends ByteApi
