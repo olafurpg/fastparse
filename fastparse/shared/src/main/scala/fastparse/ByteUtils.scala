@@ -95,12 +95,13 @@ object ByteUtils{
 
     }
   }
-
-  trait EndianByteParsers {
+  trait ParserHelpers{
     protected[this] def inputToByte(input: IsReachable[Byte], n: Int): Byte = input(n)
     protected[this] def inputToShort(input: IsReachable[Byte], n: Int): Short
     protected[this] def inputToInt(input: IsReachable[Byte], n: Int): Int
     protected[this] def inputToLong(input: IsReachable[Byte], n: Int): Long
+  }
+  trait IntParsers extends ParserHelpers{
     /**
       * Parses an 8-bit signed Byte
       */
@@ -117,10 +118,8 @@ object ByteUtils{
       * Parses an 64-bit signed Short
       */
     val Int64: Parser[Long] = new GenericIntegerParser(8, inputToLong)
-
-    // I have no idea why I have to extract these trivial steps out
-    // into separate functions, but if I do not do so this expression
-    // seg-faults in travis-CI and I have no idea how else to fix it
+  }
+  trait UnsignedIntParsers extends ParserHelpers{
     private[this] def toShort(i: Int) = i.toShort
     private[this] def unsignifyByte(i: Byte) = i & 0xff
     private[this] def unsignifyShort(i: Short) = i & 0xffff
@@ -128,9 +127,6 @@ object ByteUtils{
     private[this] def uInt8(input: IsReachable[Byte], n: Int) = toShort(unsignifyByte(input(n)))
     private[this] def uInt16(input: IsReachable[Byte], n: Int) = unsignifyShort(inputToShort(input, n))
     private[this] def uInt32(input: IsReachable[Byte], n: Int) = unsignifyInt(inputToInt(input, n))
-    private[this] def float32(input: IsReachable[Byte], n: Int) = java.lang.Float.intBitsToFloat(inputToInt(input, n))
-    private[this] def float64(input: IsReachable[Byte], n: Int) = java.lang.Double.longBitsToDouble(inputToLong(input, n))
-
     /**
       * Parses an 8-bit un-signed Byte, stuffed into a Short
       */
@@ -146,6 +142,10 @@ object ByteUtils{
       */
     val UInt32: Parser[Long] = new GenericIntegerParser(4, uInt32)
 
+  }
+  trait FloatParsers extends ParserHelpers{
+    private[this] def float32(input: IsReachable[Byte], n: Int) = java.lang.Float.intBitsToFloat(inputToInt(input, n))
+    private[this] def float64(input: IsReachable[Byte], n: Int) = java.lang.Double.longBitsToDouble(inputToLong(input, n))
 
     /**
       * Parses an 32-bit signed Float
@@ -157,6 +157,7 @@ object ByteUtils{
       */
     val Float64: Parser[Double] = new GenericIntegerParser(8, float64)
   }
+  trait EndianByteParsers extends IntParsers with UnsignedIntParsers with FloatParsers
   object EndianByteParsers{
     /**
       * Parsers for parsing 16, 32 and 64 bit integers in little-endian format
