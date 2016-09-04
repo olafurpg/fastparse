@@ -100,7 +100,7 @@
                 to parse.
 
             @p
-                There is also a plural @sect{AnyChars(count: Int)} version that
+                There is also a plural @hl.scala{AnyChars(count: Int)} version that
                 parses exactly @code{count} characters in a row, regardless of
                 what they are.
 
