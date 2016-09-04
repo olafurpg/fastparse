@@ -361,17 +361,17 @@ object ClassParse {
     P( BS(8) ~/ string_index ).map(StringInfo)
   }
 
-  val constantIntInfo = P( BS(3) ~/ Word32.! ).map(bs =>
-    BasicElemInfo(IntElem(wrapByteBuffer(bs).getInt))
+  val constantIntInfo = P( BS(3) ~/ Int32 ).map(i =>
+    BasicElemInfo(IntElem(i))
   )
-  val constantFloatInfo = P( BS(4) ~/ Word32.! ).map(bs =>
-    BasicElemInfo(FloatElem(wrapByteBuffer(bs).getFloat))
+  val constantFloatInfo = P( BS(4) ~/ Float32 ).map(f =>
+    BasicElemInfo(FloatElem(f))
   )
-  val constantLongInfo = P( BS(5) ~/ AnyByte.rep(exactly=8).! ).map(bs =>
-    BasicElemInfo(LongElem(wrapByteBuffer(bs).getLong))
+  val constantLongInfo = P( BS(5) ~/ Int64 ).map(i =>
+    BasicElemInfo(LongElem(i))
   )
-  val constantDoubleInfo = P( BS(6) ~/ AnyByte.rep(exactly=8).! ).map(bs =>
-    BasicElemInfo(DoubleElem(wrapByteBuffer(bs).getDouble))
+  val constantDoubleInfo = P( BS(6) ~/ Float64 ).map(f =>
+    BasicElemInfo(DoubleElem(f))
   )
 
   val constantNameAndTypeInfo = {
