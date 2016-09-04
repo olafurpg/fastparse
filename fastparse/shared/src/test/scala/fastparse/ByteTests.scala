@@ -1,5 +1,7 @@
 package fastparse
 
+import java.nio.{ByteBuffer, ByteOrder}
+
 import utest._
 
 object ByteTests extends TestSuite {
@@ -534,6 +536,82 @@ object ByteTests extends TestSuite {
         )
       }
 
+    }
+
+    'endianness{
+      import fastparse.byte._
+      def check[T](size: Int,
+                   range: Iterator[T],
+                   beParser: P[T],
+                   leParser: P[T],
+                   put: (ByteBuffer, T) => ByteBuffer) = {
+        var count = 0
+        var firstValue: Option[T] = None
+        var lastValue : Option[T] = None
+        for (i <- range) {
+          if(firstValue == None) firstValue = Some(i)
+          lastValue = Some(i)
+          count += 1
+          val cases = Seq(
+            ByteOrder.BIG_ENDIAN -> beParser,
+            ByteOrder.LITTLE_ENDIAN -> leParser
+          )
+          for((enum, parser) <- cases){
+            val arr = put(ByteBuffer.allocate(size).order(enum), i).array()
+            val fastparse.byte.Parsed.Success(`i`, `size`) = parser.parse(arr)
+          }
+
+        }
+        s"Checked $count different values from ${firstValue.get} to ${lastValue.get}"
+      }
+      def iterateShorts = (Short.MinValue to Short.MaxValue).toIterator
+      'short - {
+        check[Short](
+          2,
+          iterateShorts.map(_.toShort),
+          fastparse.byte.BE.Int16,
+          fastparse.byte.LE.Int16,
+          (b, i) => b.putShort(i)
+        )
+      }
+      'int{
+        check[Int](
+          4,
+          iterateShorts.map(_ * Short.MaxValue),
+          fastparse.byte.BE.Int32,
+          fastparse.byte.LE.Int32,
+          (b, i) => b.putInt(i)
+        )
+      }
+      'long{
+        check[Long](
+          8,
+          iterateShorts.map(_.toLong * Int.MaxValue * Short.MaxValue),
+          fastparse.byte.BE.Int64,
+          fastparse.byte.LE.Int64,
+          (b, i) => b.putLong(i)
+        )
+      }
+      'float{
+        check[Float](
+          4,
+          iterateShorts.map(i => java.lang.Float.intBitsToFloat(i * Short.MaxValue))
+                       .filterNot(java.lang.Float.isNaN),
+          fastparse.byte.BE.Float32,
+          fastparse.byte.LE.Float32,
+          (b, i) => b.putFloat(i)
+        )
+      }
+      'double{
+        check[Double](
+          8,
+          iterateShorts.map(i => java.lang.Double.longBitsToDouble(i.toLong * Int.MaxValue * Short.MaxValue))
+                       .filterNot(java.lang.Double.isNaN),
+          fastparse.byte.BE.Float64,
+          fastparse.byte.LE.Float64,
+          (b, i) => b.putDouble(i)
+        )
+      }
     }
   }
 }

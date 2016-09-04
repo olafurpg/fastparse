@@ -146,7 +146,7 @@ object EndianByteParsers{
     )
 
     val Int64: Parser[Long] = new GenericIntegerParser(8, (input, n) =>
-      ((input(n+7) & 0xffL) << 54) | ((input(n+6) & 0xffL) << 48) |
+      ((input(n+7) & 0xffL) << 56) | ((input(n+6) & 0xffL) << 48) |
       ((input(n+5) & 0xffL) << 40) | ((input(n+4) & 0xffL) << 32 ) |
       ((input(n+3) & 0xffL) << 24) | ((input(n+2) & 0xffL) << 16) |
       ((input(n+1) & 0xffL) << 8) | (input(n) & 0xffL)
@@ -169,7 +169,7 @@ object EndianByteParsers{
 
     val Float64: Parser[Double] = new GenericIntegerParser(8, (input, n) =>
       java.lang.Double.longBitsToDouble(
-        ((input(n+7) & 0xffL) << 54) | ((input(n+6) & 0xffL) << 48) |
+        ((input(n+7) & 0xffL) << 56) | ((input(n+6) & 0xffL) << 48) |
         ((input(n+5) & 0xffL) << 40) | ((input(n+4) & 0xffL) << 32 ) |
         ((input(n+3) & 0xffL) << 24) | ((input(n+2) & 0xffL) << 16) |
         ((input(n+1) & 0xffL) << 8) | (input(n) & 0xffL)
@@ -188,7 +188,7 @@ object EndianByteParsers{
       ((input(n+2) & 0xff) << 8) | (input(n+3) & 0xff)
     )
     val Int64: Parser[Long] = new GenericIntegerParser(8, (input, n) =>
-      ((input(n) & 0xffL) << 54) | ((input(n+1) & 0xffL) << 48) |
+      ((input(n) & 0xffL) << 56) | ((input(n+1) & 0xffL) << 48) |
       ((input(n+2) & 0xffL) << 40) | ((input(n+3) & 0xffL) << 32 ) |
       ((input(n+4) & 0xffL) << 24) | ((input(n+5) & 0xffL) << 16) |
       ((input(n+6) & 0xffL) << 8) | (input(n+7) & 0xffL)
@@ -208,7 +208,7 @@ object EndianByteParsers{
     )
     val Float64: Parser[Double] = new GenericIntegerParser(8, (input, n) =>
       java.lang.Double.longBitsToDouble(
-        ((input(n) & 0xffL) << 54) | ((input(n+1) & 0xffL) << 48) |
+        ((input(n) & 0xffL) << 56) | ((input(n+1) & 0xffL) << 48) |
         ((input(n+2) & 0xffL) << 40) | ((input(n+3) & 0xffL) << 32 ) |
         ((input(n+4) & 0xffL) << 24) | ((input(n+5) & 0xffL) << 16) |
         ((input(n+6) & 0xffL) << 8) | (input(n+7) & 0xffL)
