@@ -134,6 +134,21 @@ class ByteApi() extends Api[Byte, Array[Byte]]() {
     */
   val Word64: P[Unit] = new GenericIntegerParser(8, (input, n) => ())
 
+  /**
+    * Prettify an array of `bytes` as an easy-to-ready 16-wide grid of hex-values
+    * into a string you can print and read.
+    *
+    * By default, only prints the first 8 rows. You can pass in a set of `showIndices`
+    * in order to label other parts of the input `bytes` with a caret and also print
+    * the rows around those points, or set `contextRows` to some other value than
+    * 8 if you want to see more or less rows (e.g. set it to Int.MaxValue to show
+    * the whole input)
+    */
+  def prettyBytes(bytes: Array[Byte],
+                  showIndices: Seq[Int] = Seq(-1),
+                  contextRows: Int = 8) = {
+    ByteUtils.prettyBytes(bytes, showIndices, contextRows)
+  }
 }
 
 object byte extends ByteApi {
