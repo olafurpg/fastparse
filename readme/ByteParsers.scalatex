@@ -89,7 +89,7 @@
                 @sect.ref("Basic", "literal string parsers") in Fastparse's
                 string-parsing API
             @li
-                @sect.ref{AnyChar} becomes @hl.scala{AnyByte}
+                @sect.ref{AnyChar}/@code{AnyChars} becomes @hl.scala{AnyByte}/@code{AnyBytes}
             @li
                 @sect.ref{CharPred} becomes @hl.scala{BytePred}
             @li
@@ -118,6 +118,11 @@
             or @sect.ref{Using Log} to figure out what is going on, is all identical
             between FastParse's byte-parsing and string-parsing APIs.
 
+    @sect{Byte Helpers}
+        @p
+            Apart from providing an equivalent API for byte parsing, FastParse's
+            byte-parsers also provide some helper functions for conveniently dealing
+            with binary blobs.
 
     @sect{Example Byte Parsers}
 

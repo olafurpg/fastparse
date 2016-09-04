@@ -102,7 +102,7 @@ object ByteUtils{
     /**
       * Parses an 8-bit signed Byte
       */
-    val Int8: Parser[Byte] = new GenericIntegerParser(1, (input, n) => input(n))
+    val Int8: Parser[Byte] = new GenericIntegerParser(1, _(_))
     /**
       * Parses an 16-bit signed Short
       */
@@ -119,33 +119,39 @@ object ByteUtils{
     /**
       * Parses an 8-bit un-signed Byte, stuffed into a Short
       */
-    val UInt8: Parser[Short] = new GenericIntegerParser(1, (input, n) => (input(n) & 0xff).toShort)
+    val UInt8: Parser[Short] = new GenericIntegerParser(1, (input, n) =>
+      (input(n) & 0xff).toShort
+    )
     /**
       * Parses an 16-bit signed Short, stuffed into an Int
       */
     val UInt16: Parser[Int] = new GenericIntegerParser(2, (input, n) =>
       inputToShort(input, n) & 0xffff
     )
-    private[this] def toUnsignedLong(i: Int) = i & 0xffffffffL
+
+    def inputToULong(input: IsReachable[Byte], n: Int) = {
+      inputToInt(input, n) & 0xffffffffL
+    }
     /**
       * Parses an 32-bit signed Int, stuffed into a Long
       */
-    val UInt32: Parser[Long] = new GenericIntegerParser(4, (input, n) =>
-      toUnsignedLong(inputToInt(input, n))
-    )
+    val UInt32: Parser[Long] = new GenericIntegerParser(4, inputToULong)
 
+
+    private[this] def intToFloat(i: Int) = java.lang.Float.intBitsToFloat(i)
     /**
       * Parses an 32-bit signed Float
       */
     val Float32: Parser[Float] = new GenericIntegerParser(4, (input, n) =>
-      java.lang.Float.intBitsToFloat(inputToInt(input, n))
+      intToFloat(inputToInt(input, n))
     )
+
+    private[this] def longToDouble(l: Long) = java.lang.Double.longBitsToDouble(l)
     /**
       * Parses an 32-bit signed Double
       */
-
     val Float64: Parser[Double] = new GenericIntegerParser(8, (input, n) =>
-      java.lang.Double.longBitsToDouble(inputToLong(input, n))
+      longToDouble(inputToLong(input, n))
     )
   }
   object EndianByteParsers{

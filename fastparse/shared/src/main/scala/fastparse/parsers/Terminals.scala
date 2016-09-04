@@ -44,7 +44,7 @@ object Terminals {
     def parseRec(cfg: ParseCtx[ElemType, Repr], index: Int) = {
       val input = cfg.input
       if (!input.isReachable(index)) fail(cfg.failure, index)
-      else success(cfg.success, input(index), index+1, Set.empty, false)
+      else success(cfg.success, (), index+1, Set.empty, false)
     }
     override val toString = "AnyElem"
   }
@@ -55,7 +55,7 @@ object Terminals {
     def parseRec(cfg: ParseCtx[ElemType, Repr], index: Int) = {
       val input = cfg.input
       if (!input.isReachable(index + count - 1)) fail(cfg.failure, index)
-      else success(cfg.success, input(index), index + count, Set.empty, false)
+      else success(cfg.success, (), index + count, Set.empty, false)
     }
     override val toString = "AnyElems"
   }
