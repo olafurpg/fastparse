@@ -85,7 +85,7 @@ class GenericIntegerParser[T](n: Int, creator: (IsReachable[Byte], Int) => T)
   override def toString = name.value
 
   def parseRec(cfg: ParseCtx[Byte, Array[Byte]], index: Int) = {
-    if (!cfg.input.isReachable(n + index)) fail(cfg.failure, index)
+    if (!cfg.input.isReachable(n + index - 1)) fail(cfg.failure, index)
     else success(cfg.success, creator(cfg.input, index), index + n, Set.empty, false)
 
   }
