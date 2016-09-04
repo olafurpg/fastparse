@@ -110,8 +110,10 @@ object ByteUtils{
       val Int64: Parser[Long] = new GenericIntegerParser(8, inputToLong)
     }
     object E{
+      def toShort(i: Int) = i.toShort
+      def unsignify(i: Byte) = i & 0xff
       val UInt8: Parser[Short] = new GenericIntegerParser(1, (input, n) =>
-        (input(n) & 0xff).toShort
+        toShort(unsignify(input(n)))
       )
     }
     object F{
