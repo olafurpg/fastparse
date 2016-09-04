@@ -44,6 +44,10 @@
                 @code{Word16}, @code{Word32}, @code{Word64}: parses 2 and 4 bytes
                 and 8 bytes respectively, but discards the results
             @li
+                @code{Int8} parses a single @code{Byte}; there is only one version
+                since one byte isn't affected by @lnk("Endianness",
+                "https://en.wikipedia.org/wiki/Endianness")
+            @li
                 @code{LE.Int16}, @code{LE.Int32}, @code{LE.Int64}: parses 2 and 4 bytes
                 and 8 bytes respectively, and returns a signed @code{Short}s,
                 @code{Int}s and @code{Long}s from the little-endian bytes
@@ -51,11 +55,20 @@
                 @code{BE.Int16}, @code{BE.Int32}, @code{BE.Int64}: parses 2 and 4 bytes
                 and 8 bytes respectively, and returns a signed @code{Short}s,
                 @code{Int}s and @code{Long}s from the big-endian bytes
+            @li
+                @code{UInt8}, @code{BE.UInt16}, @code{BE.UInt32},
+                @code{LE.UInt16}, @code{LE.UInt32} are unsigned versions of
+                the signed parsers above: they parse the same number of bytes,
+                but promote the number up one size (e.g. @code{UInt8} returns
+                @code{Short}s, @code{UInt16} returns @code{Int}s, @code{UInt32}
+                returns @code{Long}s) to give space to return an unsigned
+                number (e.g. @code{0xFF} is parsed as @code{-127} by @code{Int8},
+                but @code{255} by @code{UInt8})
 
         @p
             Note the difference between @code{LE} and @code{BE} versions of the
             @code{IntN} parsers; there are
-            @a("two standards of ordering bytes", href:="https://en.wikipedia.org/wiki/Endianness"),
+            @lnk("two standards of ordering bytes", "https://en.wikipedia.org/wiki/Endianness"),
             so you have to pick which one you want to use. You can also @hl.scala{import LE._}
             or @hl.scala{import BE._} if the endian-ness is the same throughout
             your parser, and then use @code{Int16}/@code{Int32}/@code{Int64} directly.

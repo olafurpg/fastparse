@@ -56,7 +56,7 @@ class Api[ElemType, Repr]()(implicit elemSetHelper: ElemSetHelper[ElemType],
 class StringApi() extends Api[Char, String]() {
 
   val AnyChar = AnyElem
-
+  def AnyChars(count: Int) = AnyElems[Char, String](count)
   val CharPred = ElemPred
   def CharIn(strings: Seq[Char]*) = ElemIn(strings: _*)
   def CharsWhile(pred: Char => Boolean, min: Int = 1) = ElemsWhile(pred, min)
