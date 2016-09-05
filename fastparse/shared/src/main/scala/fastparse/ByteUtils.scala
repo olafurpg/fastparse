@@ -101,6 +101,36 @@ object ByteUtils{
     protected[this] def inputToShort(input: IsReachable[Byte], n: Int): Short
     protected[this] def inputToInt(input: IsReachable[Byte], n: Int): Int
     protected[this] def inputToLong(input: IsReachable[Byte], n: Int): Long
+    // Not sure why we need to break these out into separate objects, but for some
+    // reason the travis-CI JVM seg-faults if we don't do it =(
+    private[this] type F[+T] = Function2[IsReachable[Byte], Int, T]
+    private[this] object Int8Handler extends F[Byte]{
+      def apply(input: IsReachable[Byte], n: Int) = inputToByte(input, n)
+    }
+    private[this] object Int16Handler extends F[Short]{
+      def apply(input: IsReachable[Byte], n: Int) = inputToShort(input, n)
+    }
+    private[this] object Int32Handler extends F[Int]{
+      def apply(input: IsReachable[Byte], n: Int) = inputToInt(input, n)
+    }
+    private[this] object Int64Handler extends F[Long]{
+      def apply(input: IsReachable[Byte], n: Int) = inputToLong(input, n)
+    }
+    private[this] object UInt8Handler extends F[Short]{
+      def apply(input: IsReachable[Byte], n: Int) = (inputToByte(input, n) & 0xff).toShort
+    }
+    private[this] object UInt16Handler extends F[Int]{
+      def apply(input: IsReachable[Byte], n: Int) = inputToShort(input, n)  & 0xffff
+    }
+    private[this] object UInt32Handler extends F[Long]{
+      def apply(input: IsReachable[Byte], n: Int) = inputToInt(input, n) & 0xffffffffl
+    }
+    private[this] object Float32Handler extends F[Float]{
+      def apply(input: IsReachable[Byte], n: Int) = java.lang.Float.intBitsToFloat(inputToInt(input, n))
+    }
+    private[this] object Float64Handler extends F[Double]{
+      def apply(input: IsReachable[Byte], n: Int) = java.lang.Double.longBitsToDouble(inputToLong(input, n))
+    }
     /**
       * Parses an 8-bit signed Byte
       */
@@ -123,37 +153,27 @@ object ByteUtils{
     /**
       * Parses an 8-bit un-signed Byte, stuffed into a Short
       */
-    val UInt8: Parser[Short] = new GenericIntegerParser(1, new Function2[IsReachable[Byte], Int, Short]{
-      def apply(input: IsReachable[Byte], n: Int) = (inputToByte(input, n) & 0xff).toShort
-    })
+    val UInt8: Parser[Short] = new GenericIntegerParser(1, UInt8Handler)
 
     /**
       * Parses an 16-bit signed Short, stuffed into an Int
       */
-    val UInt16: Parser[Int] = new GenericIntegerParser(2, new Function2[IsReachable[Byte], Int, Int]{
-      def apply(input: IsReachable[Byte], n: Int) = inputToShort(input, n)  & 0xffff
-    })
+    val UInt16: Parser[Int] = new GenericIntegerParser(2, UInt16Handler)
 
     /**
       * Parses an 32-bit signed Int, stuffed into a Long
       */
-    val UInt32: Parser[Long] = new GenericIntegerParser(4, new Function2[IsReachable[Byte], Int, Long]{
-      def apply(input: IsReachable[Byte], n: Int) = inputToInt(input, n) & 0xffffffffl
-    })
+    val UInt32: Parser[Long] = new GenericIntegerParser(4, UInt32Handler)
 
     /**
       * Parses an 32-bit signed Float
       */
-    val Float32: Parser[Float] = new GenericIntegerParser(4, (input, n) =>
-      java.lang.Float.intBitsToFloat(inputToInt(input, n))
-    )
+    val Float32: Parser[Float] = new GenericIntegerParser(4, Float32Handler)
 
     /**
       * Parses an 32-bit signed Double
       */
-    val Float64: Parser[Double] = new GenericIntegerParser(8, (input, n) =>
-      java.lang.Double.longBitsToDouble(inputToLong(input, n))
-    )
+    val Float64: Parser[Double] = new GenericIntegerParser(8, Float64Handler)
   }
   object EndianByteParsers{
     /**
