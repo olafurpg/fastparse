@@ -124,7 +124,7 @@ object ByteUtils{
       * Parses an 8-bit un-signed Byte, stuffed into a Short
       */
     val UInt8: Parser[Short] = new GenericIntegerParser(1, new Function2[IsReachable[Byte], Int, Short]{
-      def apply(input: IsReachable[Byte], n: Int) = (inputToShort(input, n) & 0xff).toShort
+      def apply(input: IsReachable[Byte], n: Int) = (inputToByte(input, n) & 0xff).toShort
     })
 
     /**
