@@ -118,7 +118,14 @@ object ByteUtils{
     }
     private[this] object UInt8Handler extends F[Short]{
       def apply(input: IsReachable[Byte], n: Int) = {
-        ((inputToByte(input, n) & 0xff) * 1 + 0).toShort
+        println("A")
+        val b: Byte = inputToByte(input, n)
+        println("B")
+        val i: Int = b & 0xff
+        println("C")
+        val s: Short = i.toShort
+        println("D")
+        s
       }
     }
     private[this] object UInt16Handler extends F[Int]{
