@@ -118,13 +118,9 @@ object ByteUtils{
     }
     private[this] object UInt8Handler extends F[Short]{
       def apply(input: IsReachable[Byte], n: Int) = {
-        println("A")
         val b: Byte = inputToByte(input, n)
-        println("B")
         val i: Int = b & 0xff
-        println("C")
         val s: Short = i.toShort
-        println("D")
         s
       }
     }
