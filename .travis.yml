@@ -1,5 +1,9 @@
 language: scala
 
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
 
 # Manually specify the build matrix so we can control exactly what order things
 # run, and which things are cross-tested and which things aren't
