@@ -101,41 +101,7 @@ object ByteUtils{
     protected[this] def inputToShort(input: IsReachable[Byte], n: Int): Short
     protected[this] def inputToInt(input: IsReachable[Byte], n: Int): Int
     protected[this] def inputToLong(input: IsReachable[Byte], n: Int): Long
-    // Not sure why we need to break these out into separate objects, but for some
-    // reason the travis-CI JVM seg-faults if we don't do it =(
-    private[this] type F[+T] = Function2[IsReachable[Byte], Int, T]
-    private[this] object Int8Handler extends F[Byte]{
-      def apply(input: IsReachable[Byte], n: Int) = inputToByte(input, n)
-    }
-    private[this] object Int16Handler extends F[Short]{
-      def apply(input: IsReachable[Byte], n: Int) = inputToShort(input, n)
-    }
-    private[this] object Int32Handler extends F[Int]{
-      def apply(input: IsReachable[Byte], n: Int) = inputToInt(input, n)
-    }
-    private[this] object Int64Handler extends F[Long]{
-      def apply(input: IsReachable[Byte], n: Int) = inputToLong(input, n)
-    }
-    private[this] object UInt8Handler extends F[Short]{
-      def apply(input: IsReachable[Byte], n: Int) = {
-        val b: Byte = inputToByte(input, n)
-        val i: Int = b & 0xff
-        val s: Short = i.toShort
-        s
-      }
-    }
-    private[this] object UInt16Handler extends F[Int]{
-      def apply(input: IsReachable[Byte], n: Int) = inputToShort(input, n)  & 0xffff
-    }
-    private[this] object UInt32Handler extends F[Long]{
-      def apply(input: IsReachable[Byte], n: Int) = inputToInt(input, n) & 0xffffffffl
-    }
-    private[this] object Float32Handler extends F[Float]{
-      def apply(input: IsReachable[Byte], n: Int) = java.lang.Float.intBitsToFloat(inputToInt(input, n))
-    }
-    private[this] object Float64Handler extends F[Double]{
-      def apply(input: IsReachable[Byte], n: Int) = java.lang.Double.longBitsToDouble(inputToLong(input, n))
-    }
+
     /**
       * Parses an 8-bit signed Byte
       */
@@ -153,32 +119,40 @@ object ByteUtils{
       */
     val Int64: Parser[Long] = new GenericIntegerParser(8, inputToLong)
 
-    // No idea why these need to be verbose anonymous classes, but if I don't
-    // do this the JVM seg-faults in travis-CI =(
     /**
       * Parses an 8-bit un-signed Byte, stuffed into a Short
       */
-    val UInt8: Parser[Short] = new GenericIntegerParser(1, UInt8Handler)
+    val UInt8: Parser[Short] = new GenericIntegerParser(1, (input, n) =>
+      (inputToByte(input, n) & 0xff).toShort
+    )
 
     /**
       * Parses an 16-bit signed Short, stuffed into an Int
       */
-    val UInt16: Parser[Int] = new GenericIntegerParser(2, UInt16Handler)
+    val UInt16: Parser[Int] = new GenericIntegerParser(2, (input, n) =>
+      inputToShort(input, n)  & 0xffff
+    )
 
     /**
       * Parses an 32-bit signed Int, stuffed into a Long
       */
-    val UInt32: Parser[Long] = new GenericIntegerParser(4, UInt32Handler)
+    val UInt32: Parser[Long] = new GenericIntegerParser(4, (input, n) =>
+      inputToInt(input, n) & 0xffffffffl
+    )
 
     /**
       * Parses an 32-bit signed Float
       */
-    val Float32: Parser[Float] = new GenericIntegerParser(4, Float32Handler)
+    val Float32: Parser[Float] = new GenericIntegerParser(4, (input, n) =>
+      java.lang.Float.intBitsToFloat(inputToInt(input, n))
+    )
 
     /**
       * Parses an 32-bit signed Double
       */
-    val Float64: Parser[Double] = new GenericIntegerParser(8, Float64Handler)
+    val Float64: Parser[Double] = new GenericIntegerParser(8, (input, n) =>
+      java.lang.Double.longBitsToDouble(inputToLong(input, n))
+    )
   }
   object EndianByteParsers{
     /**
