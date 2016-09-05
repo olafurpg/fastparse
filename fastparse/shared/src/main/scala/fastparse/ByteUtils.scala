@@ -11,14 +11,14 @@ import scala.collection.mutable
   */
 object ByteUtils{
   def prettyBytes(bytes: Array[Byte],
-                  showIndices: Seq[Int] = Seq(-1),
+                  markers: Seq[Int] = Seq(-1),
                   contextRows: Int = 8) = {
-    val invalidIndices = showIndices.filter(
+    val invalidIndices = markers.filter(
       x => x < -1 /*-1 is special case*/ || x >= bytes.length
     )
     require(
       invalidIndices.isEmpty,
-      s"Cannot show indices $showIndices outside input bounds 0 -> ${bytes.length}"
+      s"Cannot show indices $markers outside input bounds 0 -> ${bytes.length}"
     )
 
     val maxIndexWidth = math.floor(math.max(0, math.log10(99))).toInt + 1
@@ -29,7 +29,7 @@ object ByteUtils{
     output.append(0.until(math.min(16, bytes.length)).map(x => x.toString.padTo(2, ' ')).mkString(" ").trim)
     output.append('\n')
 
-    val sortedIndices = showIndices.sorted
+    val sortedIndices = markers.sorted
     val groupedIndices = mutable.Buffer(mutable.Buffer(sortedIndices.head))
     for (index <- sortedIndices.tail){
       if (index / 16 - groupedIndices.last.last / 16 < contextRows){
@@ -96,16 +96,26 @@ object ByteUtils{
     }
   }
 
+  protected[this] def inputToByte(input: IsReachable[Byte], n: Int): Byte = input(n)
+  /**
+    * Parses an 8-bit signed Byte
+    */
+  val Int8: Parser[Byte] = new GenericIntegerParser(1, inputToByte)
+  /**
+    * Parses an 8-bit un-signed Byte, stuffed into a Short
+    */
+  val UInt8: Parser[Short] = new GenericIntegerParser(1, (input, n) =>
+    (inputToByte(input, n) & 0xff).toShort
+  )
+
+
   trait EndianByteParsers {
-    protected[this] def inputToByte(input: IsReachable[Byte], n: Int): Byte = input(n)
+
     protected[this] def inputToShort(input: IsReachable[Byte], n: Int): Short
     protected[this] def inputToInt(input: IsReachable[Byte], n: Int): Int
     protected[this] def inputToLong(input: IsReachable[Byte], n: Int): Long
 
-    /**
-      * Parses an 8-bit signed Byte
-      */
-    val Int8: Parser[Byte] = new GenericIntegerParser(1, inputToByte)
+
     /**
       * Parses an 16-bit signed Short
       */
@@ -118,13 +128,6 @@ object ByteUtils{
       * Parses an 64-bit signed Short
       */
     val Int64: Parser[Long] = new GenericIntegerParser(8, inputToLong)
-
-    /**
-      * Parses an 8-bit un-signed Byte, stuffed into a Short
-      */
-    val UInt8: Parser[Short] = new GenericIntegerParser(1, (input, n) =>
-      (inputToByte(input, n) & 0xff).toShort
-    )
 
     /**
       * Parses an 16-bit signed Short, stuffed into an Int

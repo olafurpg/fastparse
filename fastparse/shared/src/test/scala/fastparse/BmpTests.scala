@@ -29,7 +29,7 @@ object BmpTests extends TestSuite {
 
       case class BitmapInfoHeader(infoPart: BitmapInfoHeaderPart) extends BitmapHeader(infoPart)
 
-      case class Pixel(colors: ByteSeq)
+      case class Pixel(colors: Array[Byte])
 
       case class Bmp(fileHeader: FileHeader, bitmapHeader: BitmapHeader, pixels: Seq[Seq[Pixel]])
 
