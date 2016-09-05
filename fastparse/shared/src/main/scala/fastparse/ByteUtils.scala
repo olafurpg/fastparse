@@ -120,27 +120,28 @@ object ByteUtils{
     val Int64: Parser[Long] = new GenericIntegerParser(8, inputToLong)
   }
   trait UnsignedIntParsers extends ParserHelpers{
-    private[this] def toShort(i: Int) = i.toShort
-    private[this] def unsignifyByte(i: Byte) = i & 0xff
-    private[this] def unsignifyShort(i: Short) = i & 0xffff
-    private[this] def unsignifyInt(i: Int) = i & 0xffffffffL
-    private[this] def uInt8(input: IsReachable[Byte], n: Int) = toShort(unsignifyByte(input(n)))
-    private[this] def uInt16(input: IsReachable[Byte], n: Int) = unsignifyShort(inputToShort(input, n))
-    private[this] def uInt32(input: IsReachable[Byte], n: Int) = unsignifyInt(inputToInt(input, n))
+    
     /**
       * Parses an 8-bit un-signed Byte, stuffed into a Short
       */
-    val UInt8: Parser[Short] = new GenericIntegerParser(1, uInt8)
+    val UInt8: Parser[Short] = new GenericIntegerParser(1, new Function2[IsReachable[Byte], Int, Short]{
+      def apply(input: IsReachable[Byte], n: Int) = (inputToShort(input, n) & 0xff).toShort
+    })
 
     /**
       * Parses an 16-bit signed Short, stuffed into an Int
       */
-    val UInt16: Parser[Int] = new GenericIntegerParser(2, uInt16)
+    val UInt16: Parser[Int] = new GenericIntegerParser(2, new Function2[IsReachable[Byte], Int, Int]{
+      def apply(input: IsReachable[Byte], n: Int) = inputToShort(input, n)  & 0xffff
+    })
 
     /**
       * Parses an 32-bit signed Int, stuffed into a Long
       */
-    val UInt32: Parser[Long] = new GenericIntegerParser(4, uInt32)
+    val UInt32: Parser[Long] = new GenericIntegerParser(4, new Function2[IsReachable[Byte], Int, Long]{
+      def apply(input: IsReachable[Byte], n: Int) = inputToInt(input, n) & 0xffffffffl
+    })
+
 
   }
   trait FloatParsers extends ParserHelpers{
