@@ -1,9 +1,5 @@
 language: scala
 
-addons:
-  apt:
-    packages:
-      - oracle-java8-installer
 
 # Manually specify the build matrix so we can control exactly what order things
 # run, and which things are cross-tested and which things aren't
@@ -88,4 +84,4 @@ matrix:
 script:
 - sbt ++$TRAVIS_SCALA_VERSION "; $CI_SCRIPT"
 
-sudo: false
+sudo: required
