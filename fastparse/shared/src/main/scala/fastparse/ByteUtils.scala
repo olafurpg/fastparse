@@ -95,13 +95,12 @@ object ByteUtils{
 
     }
   }
-  trait ParserHelpers{
+
+  trait EndianByteParsers {
     protected[this] def inputToByte(input: IsReachable[Byte], n: Int): Byte = input(n)
     protected[this] def inputToShort(input: IsReachable[Byte], n: Int): Short
     protected[this] def inputToInt(input: IsReachable[Byte], n: Int): Int
     protected[this] def inputToLong(input: IsReachable[Byte], n: Int): Long
-  }
-  trait IntParsers extends ParserHelpers{
     /**
       * Parses an 8-bit signed Byte
       */
@@ -118,9 +117,9 @@ object ByteUtils{
       * Parses an 64-bit signed Short
       */
     val Int64: Parser[Long] = new GenericIntegerParser(8, inputToLong)
-  }
-  trait UnsignedIntParsers extends ParserHelpers{
-    
+
+    // No idea why these need to be verbose anonymous classes, but if I don't
+    // do this the JVM seg-faults in travis-CI =(
     /**
       * Parses an 8-bit un-signed Byte, stuffed into a Short
       */
@@ -142,23 +141,20 @@ object ByteUtils{
       def apply(input: IsReachable[Byte], n: Int) = inputToInt(input, n) & 0xffffffffl
     })
 
-
-  }
-  trait FloatParsers extends ParserHelpers{
-    private[this] def float32(input: IsReachable[Byte], n: Int) = java.lang.Float.intBitsToFloat(inputToInt(input, n))
-    private[this] def float64(input: IsReachable[Byte], n: Int) = java.lang.Double.longBitsToDouble(inputToLong(input, n))
-
     /**
       * Parses an 32-bit signed Float
       */
-    val Float32: Parser[Float] = new GenericIntegerParser(4, float32)
+    val Float32: Parser[Float] = new GenericIntegerParser(4, (input, n) =>
+      java.lang.Float.intBitsToFloat(inputToInt(input, n))
+    )
 
     /**
       * Parses an 32-bit signed Double
       */
-    val Float64: Parser[Double] = new GenericIntegerParser(8, float64)
+    val Float64: Parser[Double] = new GenericIntegerParser(8, (input, n) =>
+      java.lang.Double.longBitsToDouble(inputToLong(input, n))
+    )
   }
-  trait EndianByteParsers extends IntParsers with UnsignedIntParsers with FloatParsers
   object EndianByteParsers{
     /**
       * Parsers for parsing 16, 32 and 64 bit integers in little-endian format
