@@ -7,7 +7,12 @@ import fastparse.noApi._
 /**
  * Parser for Scala syntax.
  */
-object Scala extends Core with Types with Exprs with Xml{
+object Scala extends Scala {
+  // Mimick scalaparse behavior without hack.
+  override def addScalaExprPositionRange(range: PositionRange): Unit = Unit
+}
+// See Xml.scala for an explanation why Scala needs to be a class.
+class Scala extends Core with Types with Exprs with Xml{
   import WhitespaceApi._
 
   val TmplBody: P0 = {
