@@ -4,6 +4,9 @@ import sbt.Keys._
 
 shared
 noPublish
+inThisBuild(List(
+  pgpPassphrase := sys.env.get("PGP_PASSPHRASE").map(_.toCharArray())
+))
 
 def macroDependencies(version: String) =
   collection.Seq(
