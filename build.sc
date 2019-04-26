@@ -153,7 +153,7 @@ trait CommonCrossModule extends CrossScalaModule with PublishModule{
 
   def publishVersion = T{
     import sys.process._
-    val desc = Seq("git", "describe", "--tags").!!.trim.replace("-g", "+")
+    val desc = Seq("git", "describe", "--tags").!!.trim.replace("-g", "+").stripPrefix("v")
     if (desc.contains("+"))
       desc + "-SNAPSHOT"
     else
